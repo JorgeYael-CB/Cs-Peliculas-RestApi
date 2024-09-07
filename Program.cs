@@ -1,3 +1,6 @@
+using PeliculasAPI;
+using static PeliculasAPI.EjemploTiempoDeVidaServicios;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +8,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+
+// cache
+builder.Services.AddOutputCache(opciones =>
+{
+    opciones.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(60);
+});
+
+// Servicios - DI
+builder.Services.AddSingleton<IRepository, RepositorySqlServer>(); // singleton
+
+// Tiempo de vida diferentes - DI
+builder.Services.AddTransient<ServicioTransient>();
+builder.Services.AddScoped<ServicioScope>();
+builder.Services.AddSingleton<ServicioSingleton>();
+
+
+
 
 var app = builder.Build();
 
@@ -15,6 +36,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// use cache
+app.UseOutputCache();
 
 app.UseAuthorization();
 
