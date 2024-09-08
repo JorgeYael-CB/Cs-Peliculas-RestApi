@@ -1,5 +1,4 @@
-using PeliculasAPI;
-using static PeliculasAPI.EjemploTiempoDeVidaServicios;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,15 +15,20 @@ builder.Services.AddOutputCache(opciones =>
     opciones.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(60);
 });
 
-// Servicios - DI
-builder.Services.AddSingleton<IRepository, RepositorySqlServer>(); // singleton
+// Obtener URLs permitidas
+var origenesPermitidos = builder.Configuration.GetValue<string>("origenetesPermitidos")!
+    .Split(",");
 
-// Tiempo de vida diferentes - DI
-builder.Services.AddTransient<ServicioTransient>();
-builder.Services.AddScoped<ServicioScope>();
-builder.Services.AddSingleton<ServicioSingleton>();
-
-
+// Configurando CORS
+builder.Services.AddCors( opciones =>
+{
+    opciones.AddDefaultPolicy( opcionesCORS =>
+    {
+        opcionesCORS.WithOrigins(origenesPermitidos)
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 
 var app = builder.Build();
@@ -34,6 +38,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+// use cors
+app.UseCors();
 
 app.UseHttpsRedirection();
 
