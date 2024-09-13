@@ -3,7 +3,6 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using PeliculasAPI.DTos;
 using PeliculasAPI.entities;
 using PeliculasAPI.Utilidades;
@@ -14,7 +13,7 @@ namespace PeliculasAPI.Controllers
 {
     [Route("api/generos")] // ruta base - http
     [ApiController]
-    public class GenerosController : ControllerBase
+    public class GenerosController : CustomBaseController
     {
         private readonly IOutputCacheStore cacheStore;
         private readonly ApplicationDbContext context;
@@ -24,7 +23,7 @@ namespace PeliculasAPI.Controllers
 
         // DI
         public GenerosController ( IOutputCacheStore cacheStore,
-            ApplicationDbContext context, IMapper mapper)
+            ApplicationDbContext context, IMapper mapper): base(context, mapper)
         {
             this.cacheStore = cacheStore;
             this.context = context;
@@ -36,14 +35,7 @@ namespace PeliculasAPI.Controllers
         [HttpGet]
         [OutputCache(Tags = [cacheTag])]
         public async Task<List<GeneroDto>> Get([FromQuery] PaginacionDTO paginacion){
-            var queryable = context.Generos;
-            await HttpContext.InsertarParametrosPaginacionEnCabecera(queryable);
-
-            return await queryable
-                .OrderBy( g => g.Id ) // buenas practicas
-                .Paginar(paginacion) // clase - IQueryableExtensions
-                .ProjectTo<GeneroDto>(mapper.ConfigurationProvider)
-                .ToListAsync();
+            return await Get<Genero, GeneroDto>(paginacion, g => g.Nombre);
         }
 
 

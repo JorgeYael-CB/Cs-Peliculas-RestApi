@@ -15,7 +15,7 @@ namespace PeliculasAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ActoresController : ControllerBase
+    public class ActoresController : CustomBaseController
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
@@ -26,7 +26,7 @@ namespace PeliculasAPI.Controllers
 
 
         public ActoresController(ApplicationDbContext context, IMapper mapper,
-        IOutputCacheStore cache, IAlmacenadorArchivos almacenadorArchivos)
+        IOutputCacheStore cache, IAlmacenadorArchivos almacenadorArchivos): base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
@@ -40,14 +40,7 @@ namespace PeliculasAPI.Controllers
         [OutputCache(Tags = [cacheTag])]
         public async Task<List<ActorDto>> Get( [FromQuery] PaginacionDTO paginacionDTO )
         {
-            var query = context.Actores;
-            await HttpContext.InsertarParametrosPaginacionEnCabecera(query);
-
-            return await query
-                .OrderBy( a => a.Nombre )
-                .Paginar(paginacionDTO)
-                .ProjectTo<ActorDto>(mapper.ConfigurationProvider)
-                .ToListAsync();
+            return await Get<Actor, ActorDto>( paginacionDTO, ordenarPor: g => g.Id );
         }
 
 
